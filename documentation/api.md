@@ -1,31 +1,18 @@
 # API overview
 
-The token standard implementation provides a smart contract `FungibleToken` that can be deployed as
-the token owner for a new token. It provides all the user facing functionality that is expected of a
-fungible token: creating, transferring, and destroying tokens, as well as querying balances and the
-overall amount of tokens.
+代币标准实现提供了一个智能合约 `FungibleToken`，可以将其部署为新代币的Token Owner。它提供了可替代代币所期望的所有面向用户的功能：创建、转移和销毁代币，以及查询余额和代币总量。
 
-Using the standard means using this particular, unmodified, contract. The reason that altering the
-contract is considered deviating from the standard is the off-chain execution model of MINA: a third
-party (wallet, exchange, etc.) that wants to integrate a token needs to have access to and execute
-the code of the token owner contract in order to interact with the token. Agreeing on one particular
-implementation reduces the burden of integration significantly.
+使用标准意味着使用这个特定的、未修改的合约。更改合约被视为偏离标准的原因是 MINA 的链下执行模型：想要集成代币的第三方（钱包、交易所等）需要访问并执行Token Owner合约的代码才能与代币交互。就一种特定的实现达成一致可以大大减轻集成的负担。
 
-In order to allow for some customization without changing the token owner contract, we delegate some
-functionality to a secondary admin contract, called `FungibleTokenAdmin`. This contract controls
-access to privileged operations such as minting, pausing/resuming transfers, or changing the admin
-contract itself. This construction allows you to set the rules for monetary expansion, without
-changing the token owner contract itself. Since the admin contract will only be called from methods
-of the token contract that are not meant to be called by regular users, the code of the admin
-contract does not need to be integrated into wallets or other third party applications.
+为了允许在不更改Token Owner合约的情况下进行一些定制，我们将一些功能委托给称为`FungibleTokenAdmin`的辅助管理合约。此合约控制对特权操作的访问，例如铸造、暂停/恢复传输或更改管理合约本身。这种结构允许您设置货币扩张的规则，而无需更改Token Owner合约本身。由于管理合约只会从代币合约中普通用户不打算调用的方法中调用，因此管理合约的代码无需集成到钱包或其他第三方应用程序中。
 
-is a Token Manager zkApp that is split in 2 parts: low-level and high-level one.
+是一个代币管理器 zkApp，分为两部分：低级和高级。
 
 ## The `FungibleToken` contract
 
 ## On-chain State and deploy arguments
 
-The on-chain state is defined as follows:
+链上状态定义如下：
 
 ```ts
 @state(UInt8) decimals = State<UInt8>()
@@ -34,30 +21,22 @@ The on-chain state is defined as follows:
 @state(Bool) paused = State<Bool>()
 ```
 
-The `deploy()` function takes as arguments
+`deploy()` 函数接受以下参数：
 
-- A string to use as the token symbol
-- A string pointing to the source code of the contract -- when following the standard, this should
-  point to the source of the standard implementation on github
+- 用作代币符号的字符串
+- 指向合约源代码的字符串 - 遵循标准时，这应该指向 github 上标准实现的来源
 
-Immediately after deploying the contract -- ideally, in the same transaction -- the contract needs
-to be initialized via the `initialize()` method. Its arguments are
+部署合约后（理想情况下，在同一笔交易中）立即需要通过 `initialize()` 方法初始化合约。其参数为
 
-- The public key of the account that the admin contract has been deployed to
-- A `UInt8` for the number of decimals
-- A `Bool` to determine whether the token contract should start in paused mode. whether token
-  transfers should be enabled immediately. If set to `Bool(true)`, the token contract will be in a
-  paused state initially, and the `resume()` method will need to be called before tokens can be
-  minted or transferred. This is safer if you have a non-atomic deploy (i.e., if you do not have the
-  admin contract deployed in the same transaction as the token contract is itself is deployed and
-  initialized).
+- 已部署管理员合约的帐户的公钥
+- 用于小数位数的 `UInt8`
+- 用于确定代币合约是否应以暂停模式启动的 `Bool`。是否应立即启用代币转移。如果设置为 `Bool(true)`，代币合约最初将处于暂停状态，并且需要调用 `resume()` 方法才能铸造或转移代币。如果您有非原子部署（即，如果您没有在与代币合约本身部署和初始化的同一交易中部署管理合约），则这种方法更安全。
 
-This method initializes the state of the contract. Initially, the circulating supply is set to zero,
-as no tokens have been created yet.
+此方法初始化合约的状态。最初，流通供应设置为零，因为尚未创建任何代币。
 
 ## Methods
 
-The user facing methods of `FungibleToken` are
+`FungibleToken` 面向用户的方法包括
 
 ```ts
 @method.returns(AccountUpdate) async burn(from: PublicKey, amount: UInt64): Promise<AccountUpdate>
@@ -70,8 +49,7 @@ The user facing methods of `FungibleToken` are
 @method.returns(UInt8) async getDecimals(): Promise<UInt8>
 ```
 
-The following methods call the admin account for permission, and are not supposed to be called by
-regular users
+以下方法调用管理员帐户获取权限，不应由普通用户调用
 
 ```ts
 @method async setAdmin(admin: PublicKey)
@@ -82,19 +60,13 @@ regular users
 
 ### Minting, burning, and keeping track of the circulating supply
 
-In order to allow multiple minting/burning transactions in a single block, we do not tally the
-circulating supply as part of the contract state. Instead, we use a special account, the balance of
-which always corresponds to the total number of tokens in other accounts. The balance of this
-account is updated in the `mint()` and `burn()` methods. Transfers to and from this account are not
-possible. The `getCirculating()` method reports the balance of the account.
+为了允许在单个区块中执行多个铸造/销毁交易，我们不会将流通供应量作为合约状态的一部分进行统计。相反，我们使用一个特殊账户，其余额始终与其他账户中的代币总数相对应。此账户的余额在 `mint()` 和 `burn()` 方法中更新。无法从此账户转账。`getCirculating()` 方法报告账户余额。
 
-Note that if you want to require certain limits on the circulation, you should express your
-constraints using `requireBetween()` rather than `requireEquals()`. This is more robust against
-minting or burning transactions in the same block invalidating your preconditions.
+请注意，如果您想对流通量施加某些限制，则应使用 `requireBetween()` 而不是 `requireEquals()` 来表达您的约束。这可以更有效地防止在同一个区块中铸造或销毁交易使您的先决条件无效。
 
 ## Events
 
-The following events are emitted from `FungibleToken` when appropriate:
+在适当的时候，`FungibleToken`会发出以下事件(Events)：
 
 ```ts
 events = {
@@ -129,11 +101,6 @@ export class BalanceChangeEvent extends Struct({
 }) {}
 ```
 
-Note that `MintEvent`, `BurnEvent`, and `BalanceChangeEvent` each signal that the balance of an
-account changes. The difference is that `MintEvent` and `BurnEvent` are emitted when tokens are
-minted/burned, and `BalanceChangeEvent` is emitted when a transaction takes tokens from some
-addresses, and sends them to others.
+请注意，`MintEvent`、`BurnEvent` 和 `BalanceChangeEvent` 均表示账户余额发生变化。 不同之处在于，`MintEvent` 和 `BurnEvent` 是在代币被铸造/销毁时发出的，而 `BalanceChangeEvent` 是在交易从某些地址获取代币并将其发送到其他地址时发出的。
 
-[!NOTE] Note that `MintEvent`, `BurnEvent`, and `BalanceChangeEvent` events can be emitted with
-`amount = 0`. If you want to track "true" mints/burns/transfers (for example, to maintain a list of
-depositors), you will need to filter for non-zero values of `amount`.
+[!NOTE] 请注意，`MintEvent`、`BurnEvent` 和 `BalanceChangeEvent` 事件可以在 `amount = 0` 时发出。 如果您想跟踪“真正的”铸造/销毁/转移（例如，维护存款人列表），则需要过滤非零值的 `amount`。

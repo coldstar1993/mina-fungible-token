@@ -1,15 +1,14 @@
 # Token Operations
 
-In this section, we will explore the various token operations represented by the standard, which
-include:
+在本节中，我们将探讨该标准所代表的各种代币操作，其中包括：
 
-- Minting
-- Burning
-- Transferring between users
+- Minting 铸造
+- Burning 销毁
+- Transferring between users 在用户之间转移
 
 ## Mint tokens
 
-To mint tokens to some address:
+将代币铸造到某个地址：
 
 ```ts
 // paste the address where you want to mint tokens to
@@ -29,12 +28,11 @@ await mintTx.prove()
 await mintTx.send()
 ```
 
-> [!IMPORTANT] When a token account is created for the first time, an account creation fee must be
-> paid the same as creating a new standard account.
+> [!IMPORTANT] 首次创建代币账户时，必须支付与创建新标准账户相同的账户创建费。
 
 ## Burn tokens
 
-To burn tokens owned by some address:
+销毁某个地址拥有的代币：
 
 ```ts
 // paste the address where you want to burn tokens from
@@ -52,7 +50,7 @@ await tx.send()
 
 ## Transfer tokens between user accounts
 
-To transfer tokens between two user accounts:
+在两个用户帐户之间转移代币：
 
 ```ts
 // paste the private key of the sender and the address of the receiver
@@ -72,7 +70,7 @@ await tx.send()
 
 ## Fetch token balance of the account
 
-To get token balance of some account:
+获取某个账户的代币余额：
 
 ```ts
 // paste the address of the account you want to read balance of
@@ -80,6 +78,4 @@ const anyAccount = PublicKey.fromBase58("...")
 const balance = token.getBalanceOf(anyAccount)
 ```
 
-Refer to
-[examples/e2e.eg.ts](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/e2e.eg.ts)
-to see executable end to end example.
+请参阅 [examples/e2e.eg.ts](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/e2e.eg.ts)查看可执行的端到端示例。

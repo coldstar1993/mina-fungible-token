@@ -1,22 +1,14 @@
 # Introduction
 
-Mina natively supports custom tokens
-([MIP-4](https://github.com/MinaProtocol/MIPs/blob/main/MIPS/mip-zkapps.md#token-mechanics)). Each
-account on Mina can correspond to a custom token.
+Mina原生支持自定义代币([MIP-4](https://github.com/MinaProtocol/MIPs/blob/main/MIPS/mip-zkapps.md#token-mechanics))。Mina 上的每个帐户都可以创建对应一个自定义代币。
 
-To create a new token, one creates a smart contract, which becomes the owner for the token, and uses
-that contract to set the rules around how the token can be minted, burned and transferred. The
-contract may also set a token symbol. Uniqueness is not enforced for token names. Instead the public
-key of the contract is used to derive the token's unique identifier.
+要创建新代币，需要创建一个智能合约，该合约将成为代币的所有者(token owner)，并使用该合约来设置有关如何铸造、销毁和转让代币的规则。合约还可以设置代币符号。代币名称不强制要求唯一性。相反，合约的公钥用于派生计算出代币的唯一标识符(tokenId)。
 
 ## SHOW ME THE CODE
 
-The
-[`mina-fungible-token` repo's e2e example](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/e2e.eg.ts)
-showcases the entire lifecycle of a token.
+[`mina-fungible-token` repo 的 e2e 示例](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/e2e.eg.ts) 展示了 token 的整个生命周期。
 
-After running `npm i mina-fungible-token`, import the `FungibleToken` and `FungibleTokenAdmin`
-contracts and deploy them:
+运行 `npm i mina-fungible-token` 后，导入 `FungibleToken` 和 `FungibleTokenAdmin`合约并部署它们：
 
 ```ts
 const token = new FungibleToken(contract.publicKey)
@@ -43,58 +35,42 @@ deployTx.sign([deployer.key, contract.privateKey, admin.privateKey])
 await deployTx.send()
 ```
 
-> Note: this example assumes that `contract` and `deployer` are valid key pairs in scope.
+> 注意：此示例假设 `contract` 和 `deployer` 是范围内有效的密钥对。
 
 ## How?
 
-How is this custom token mechanism implemented in Mina?
+这个自定义token机制在Mina中是如何实现的呢？
 
 ### Token Owner Account
 
-The token owner account is a contract with the following capabilities.
+代币所有者账户(Token Owner Account)是具有以下功能的合约。
 
-- Set a token symbol (also called token name) for its token. Uniqueness is not enforced for token
-  names because the public key of the owner account is used to derive a unique identifier for each
-  token.
-- Mint new tokens. The zkApp updates an account's balance by adding the newly created tokens to it.
-  You can send minted tokens to any existing account in the network.
-- Burn tokens (the opposite of minting). Burning tokens deducts the balance of a certain address by
-  the specified amount. A zkApp cannot burn more tokens than the specified account has.
-- Send tokens between two accounts. There are two ways to initiate a transfer: either, the token
-  owner can create the account updates directly (via the `transfer` method), or the account updates
-  can be created externally, and then approved by the token owner (see
-  [Approval mechanism](#approval-mechanism)).
+- 为其代币设置代币符号（也称为代币名称）。代币名称不强制唯一性，因为所有者账户的公钥已经被用于为每个代币派生唯一标识符(tokenId)。
+- 铸造新代币。zkApp 通过向账户添加新创建的代币来更新账户余额。
+  您可以将铸造的代币发送到网络中的任何现有账户。
+- 销毁代币（铸造的反义词）。销毁代币会从某个地址的余额中扣除指定金额。zkApp 不能销毁超过指定账户的代币数量。
+- 在两个账户之间发送代币。有两种方式可以发起转账：要么代币所有者可以直接创建账户更新（通过 `transfer` 方法），要么账户更新可以在外部创建，然后由代币所有者批准（参见 [批准机制](#approval-mechanism)）。
 
 ### Token Account
 
-Token accounts are like regular accounts, but they hold a balance of a specific custom token instead
-of MINA. A token account is specified by a public key _and_ a token id.
+代币账户(Token Account)与普通账户(Regular Account)类似，但它们持有的是特定自定义代币的余额，而不是 MINA。代币账户由公钥和代币 ID 指定。
 
-Token accounts are specific for each type of custom token, so a single public key can have many
-different token accounts.
+代币账户特定于每种类型的自定义代币，因此单个公钥可以拥有许多不同的代币账户。
 
-A token account is automatically created for a public key whenever an existing account receives a
-transaction denoted with a custom token.
+每当现有账户收到用自定义代币表示的交易时，都会自动为公钥创建一个代币账户。
 
-> [!IMPORTANT] When a token account is created for the first time, an account creation fee must be
-> paid the same as creating a new standard account.
+> [!重要] 首次创建代币账户时，必须支付与创建新标准账户相同的账户创建费(1 MINA)。
 
 ### Token ID
 
-Token ids are unique identifiers that distinguish between different types of custom tokens. Custom
-token identifiers are globally unique across the entire network.
+代币 ID 是区分不同类型自定义代币的唯一标识符。自定义代币标识符在整个网络中是全局唯一的。
 
-Token ids are derived from a Token Owner account. Use the `deriveTokenId()` function to get the id
-of a token.
+代币 ID 源自代币所有者帐户。使用 `deriveTokenId()` 函数获取代币的 ID。
 
 ### Approval mechanism
 
-Sending tokens between two accounts must be approved by a Token Owner zkApp. This can be done with
-the `approveBase()` method of the custom token standard reference implementation.
+在两个账户之间发送代币必须得到Token Owner zkApp 的批准。这可以通过自定义代币标准参考实现的 `approveBase()` 方法来完成。
 
-> [!IMPORTANT] When manually constructing `AccountUpdate`s, make sure to order then appropriately in
-> the call to `approveBase()`. The contract will not allow flash minting, i.e., tokens cannot be
-> received by an account before they have been sent from an account.
+> [!重要] 手动构建 `AccountUpdate` 时，请确保在对 `approveBase()` 的调用中对其进行适当排序。合约不允许闪电铸造，即在从账户发送代币之前，账户无法接收代币。
 
-[!NOTE] The number of `AccountUpdate`s that you can pass to `approveBase()` is limited by the base
-token contract. The current limit is 9.
+[!NOTE] 可以传递给 `approveBase()` 的 `AccountUpdate` 数量受基础代币合约限制。当前限制为 9。

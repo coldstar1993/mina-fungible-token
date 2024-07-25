@@ -1,12 +1,10 @@
 # Use in a ZkApp
 
-With zkApps, you can also build smart contracts that interact with tokens. For example, a simple
-escrow contract, where tokens can be deposited to and withdrawn from.
+使用 zkApps，您还可以构建与代币交互的智能合约。例如，一个简单的托管合约，可以在其中存入和提取代币。
 
 ## Escrow contract code
 
-Interacting with tokens from a zkApp is as simple as writing off-chain code (same code like in
-previous chapter is executed from within zkApp methods):
+与 zkApp 中的代币交互就像编写链下代码一样简单（与上一章中的代码相同，在 zkApp 方法中执行）：
 
 ```ts
 export class TokenEscrow extends SmartContract {
@@ -42,6 +40,4 @@ export class TokenEscrow extends SmartContract {
 
 ## Interacting with token escrow
 
-Refer to
-[examples/escrow.eg.ts](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/escrow.eg.ts)
-to see executable `TokenEscrow` example.
+请参阅 [examples/escrow.eg.ts](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/escrow.eg.ts) 并查看可执行的 `TokenEscrow` 示例。
