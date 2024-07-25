@@ -40,4 +40,4 @@ export class TokenEscrow extends SmartContract {
 
 ## Interacting with token escrow
 
-请参阅 [examples/escrow.eg.ts](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/escrow.eg.ts) 并查看可执行的 `TokenEscrow` 示例。
+请参阅 [examples/escrow.eg.ts](../examples/escrow.eg.ts) 并查看可执行的 `TokenEscrow` 示例。

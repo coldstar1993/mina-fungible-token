@@ -46,7 +46,7 @@
 
 [!NOTE] 如果您使用单独的交易来部署管理合约以及部署和初始化代币合约，则应在暂停模式下启动代币合约，并且仅在验证管理合约已成功部署后才调用`resume()`。
 
-请参阅[examples/e2e.eg.ts](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/e2e.eg.ts) 查看可执行的端到端示例。
+请参阅[examples/e2e.eg.ts](../examples/e2e.eg.ts) 查看可执行的端到端示例。
 
 ## Upgradeability
 

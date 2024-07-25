@@ -6,7 +6,7 @@ Mina原生支持自定义代币([MIP-4](https://github.com/MinaProtocol/MIPs/blo
 
 ## SHOW ME THE CODE
 
-[`mina-fungible-token` repo 的 e2e 示例](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/e2e.eg.ts) 展示了 token 的整个生命周期。
+[`mina-fungible-token` repo 的 e2e 示例](../examples/e2e.eg.ts) 展示了 token 的整个生命周期。
 
 运行 `npm i mina-fungible-token` 后，导入 `FungibleToken` 和 `FungibleTokenAdmin`合约并部署它们：
 
@@ -22,7 +22,7 @@ const deployTx = await Mina.transaction({
   await adminContract.deploy({ adminPublicKey: admin.publicKey })
   await token.deploy({
     symbol: "abc",
-    src: "https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/e2e.eg.ts",
+    src: "../examples/e2e.eg.ts",
   })
   await token.initialize(
     admin.publicKey,

@@ -78,4 +78,4 @@ const anyAccount = PublicKey.fromBase58("...")
 const balance = token.getBalanceOf(anyAccount)
 ```
 
-请参阅 [examples/e2e.eg.ts](https://github.com/MinaFoundation/mina-fungible-token/blob/main/examples/e2e.eg.ts)查看可执行的端到端示例。
+请参阅 [examples/e2e.eg.ts](../examples/e2e.eg.ts)查看可执行的端到端示例。
